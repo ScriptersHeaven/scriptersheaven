@@ -1,7 +1,7 @@
--- // Load Orion UI Library
+-- Load Orion UI Library
 local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 
--- // Main Window
+-- Main Window
 local Window = OrionLib:MakeWindow({
     Name = "🌌 Scripters Heaven by @ok",
     HidePremium = false,
@@ -9,18 +9,18 @@ local Window = OrionLib:MakeWindow({
     ConfigFolder = "ScriptersHeaven"
 })
 
--- // Global Toggles
+-- Global Toggles
 getgenv().autoBubble = false
 getgenv().autoSell = false
 getgenv().autoHatch = false
 getgenv().autoEnchant = false
 getgenv().fpsBoost = false
 
--- // Services
+-- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Events = ReplicatedStorage:WaitForChild("Events")
 
--- // Generic loop handler
+-- Generic loop handler
 local function toggleLoop(flag, delay, action)
     task.spawn(function()
         while getgenv()[flag] do
@@ -30,7 +30,7 @@ local function toggleLoop(flag, delay, action)
     end)
 end
 
--- // FPS Boost Function
+-- FPS Boost Function
 local function enableFPSBoost(enable)
     if enable then
         -- Disabling unnecessary physics and visual effects
@@ -63,7 +63,7 @@ local function enableFPSBoost(enable)
     end
 end
 
--- // 📝 Welcome Tab
+-- 📝 Welcome Tab
 local InfoTab = Window:MakeTab({
     Name = "📢 Welcome",
     Icon = "rbxassetid://6031075938",
@@ -73,14 +73,14 @@ local InfoTab = Window:MakeTab({
 InfoTab:AddParagraph("Welcome to Scripters Heaven", "Made with 💜 by @ok")
 InfoTab:AddParagraph("Join our Discord", "🔗 https://discord.gg/mU9SSFRT")
 
--- // 🛠️ Main Features Tab
+-- 🛠️ Main Features Tab
 local MainTab = Window:MakeTab({
     Name = "Main Features",
     Icon = "rbxassetid://6034977833",
     PremiumOnly = false
 })
 
--- // Auto Bubble Toggle
+-- Auto Bubble Toggle
 MainTab:AddToggle({
     Name = "🫧 Auto Bubble",
     Default = false,
@@ -92,7 +92,7 @@ MainTab:AddToggle({
     end
 })
 
--- // Auto Sell Toggle
+-- Auto Sell Toggle
 MainTab:AddToggle({
     Name = "💰 Auto Sell",
     Default = false,
@@ -104,7 +104,7 @@ MainTab:AddToggle({
     end
 })
 
--- // Auto Hatch Toggle
+-- Auto Hatch Toggle
 MainTab:AddToggle({
     Name = "🐣 Fast Auto Hatch (Skip Animation)",
     Default = false,
@@ -116,7 +116,7 @@ MainTab:AddToggle({
     end
 })
 
--- // Auto Enchant Toggle
+-- Auto Enchant Toggle
 MainTab:AddToggle({
     Name = "✨ Auto Enchant",
     Default = false,
@@ -128,7 +128,7 @@ MainTab:AddToggle({
     end
 })
 
--- // FPS Boost Toggle
+-- FPS Boost Toggle
 MainTab:AddToggle({
     Name = "🚀 FPS Boost",
     Default = false,
@@ -138,5 +138,5 @@ MainTab:AddToggle({
     end
 })
 
--- // Launch UI
+-- Launch UI
 OrionLib:Init()
