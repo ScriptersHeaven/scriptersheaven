@@ -1,164 +1,108 @@
--- Attempt to load OrionLib from a safe URL
-local OrionLib = nil
-local success, err = pcall(function()
-    OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
-end)
+-- Load VapeLib (an alternative to OrionLib)
+local VapeLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/axstin/rbx-vapelibs/main/source.lua"))()
 
-if not success or OrionLib == nil then
-    -- If OrionLib fails to load, print the error and stop the script
-    print("Error loading OrionLib: " .. (err or "Unknown error"))
-    return -- Stop execution if OrionLib fails to load
-end
-
--- Main Window
-local Window = OrionLib:MakeWindow({
-    Name = "🌌 Scripters Heaven by @ok",
-    HidePremium = false,
-    SaveConfig = true,
-    ConfigFolder = "ScriptersHeaven"
+-- Create the main window using VapeLib
+local Window = VapeLib:Window({
+    Name = "Scripters Heaven by @ok",
+    Size = UDim2.new(0, 500, 0, 300),
+    Theme = VapeLib.Theme.Light
 })
 
--- Global Toggles
+-- Global variables to store toggle states
 getgenv().autoBubble = false
 getgenv().autoSell = false
 getgenv().autoHatch = false
-getgenv().autoEnchant = false
-getgenv().fpsBoost = false
 
 -- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Events = ReplicatedStorage:WaitForChild("Events")
 
--- Loop Connection Storage
-local loopConnections = {}
-
--- Generic loop handler with safe exit
+-- Function to manage looping actions
 local function toggleLoop(flag, delay, action)
-    -- Disconnect previous loop if already exists
-    if loopConnections[flag] then
-        loopConnections[flag]:Disconnect()
-        loopConnections[flag] = nil
-    end
-
-    -- Create new loop
-    loopConnections[flag] = game:GetService("RunService").Heartbeat:Connect(function()
-        if not getgenv()[flag] then
-            loopConnections[flag]:Disconnect()  -- Disconnect the loop when turned off
-            loopConnections[flag] = nil
-            return
-        end
+    while getgenv()[flag] do
         pcall(action)
         wait(delay)
-    end)
-end
-
--- FPS Boost Function
-local function enableFPSBoost(enable)
-    if enable then
-        -- Disabling unnecessary physics and visual effects
-        game:GetService("Lighting").GlobalShadows = false
-        game:GetService("Workspace").StreamingEnabled = false
-        game:GetService("Workspace").Gravity = 0 -- Reduce gravity to lighten physics calculations
-        game:GetService("Workspace").Terrain.CanCollide = false -- Disable terrain collisions
-        game:GetService("Workspace").Terrain.Material = Enum.Material.SmoothPlastic -- Lighter terrain material
-        game:GetService("Workspace").Terrain.WaterWaveSize = 0 -- Disable water effects
-        game:GetService("ReplicatedStorage").Waterfall:SetAttribute("Enabled", false) -- Disable waterfall
-        for _, part in pairs(workspace:GetDescendants()) do
-            if part:IsA("ParticleEmitter") then
-                part.Enabled = false -- Disable particle effects
-            end
-        end
-    else
-        -- Re-enable settings if FPS Boost is turned off
-        game:GetService("Lighting").GlobalShadows = true
-        game:GetService("Workspace").StreamingEnabled = true
-        game:GetService("Workspace").Gravity = 196.2 -- Default gravity
-        game:GetService("Workspace").Terrain.CanCollide = true
-        game:GetService("Workspace").Terrain.Material = Enum.Material.SmoothPlastic -- Default terrain material
-        game:GetService("Workspace").Terrain.WaterWaveSize = 1 -- Default water effects
-        game:GetService("ReplicatedStorage").Waterfall:SetAttribute("Enabled", true) -- Re-enable waterfall
-        for _, part in pairs(workspace:GetDescendants()) do
-            if part:IsA("ParticleEmitter") then
-                part.Enabled = true -- Enable particle effects
-            end
-        end
     end
 end
 
--- 📝 Welcome Tab
-local InfoTab = Window:MakeTab({
+-- Auto Bubble Feature
+local function autoBubbleFunction()
+    while getgenv().autoBubble do
+        pcall(function()
+            Events.BlowBubble:FireServer()  -- Adjust this if necessary
+        end)
+        wait(0.2) -- Adjust the delay to your preference
+    end
+end
+
+-- Auto Sell Feature
+local function autoSellFunction()
+    while getgenv().autoSell do
+        pcall(function()
+            Events.Sell:FireServer()  -- Adjust this if necessary
+        end)
+        wait(2) -- Adjust the wait time as per your needs
+    end
+end
+
+-- Fast Hatch Feature
+local function fastHatchFunction()
+    while getgenv().autoHatch do
+        pcall(function()
+            Events.HatchEgg:FireServer()  -- Adjust this if necessary
+        end)
+        wait(0.1)  -- Almost no wait for instant hatching
+    end
+end
+
+-- Create Tabs and Buttons in the GUI
+
+-- Info Tab (with Discord link)
+local InfoTab = Window:Tab({
     Name = "📢 Welcome",
-    Icon = "rbxassetid://6031075938",
-    PremiumOnly = false
+    Icon = "rbxassetid://6031075938"
 })
+InfoTab:Label("Welcome to Scripters Heaven!")
+InfoTab:Label("Join our Discord: https://discord.gg/mU9SSFRT")
 
-InfoTab:AddParagraph("Welcome to Scripters Heaven", "Made with 💜 by @ok")
-InfoTab:AddParagraph("Join our Discord", "🔗 https://discord.gg/mU9SSFRT")
-
--- 🛠️ Main Features Tab
-local MainTab = Window:MakeTab({
+-- Main Features Tab
+local FeaturesTab = Window:Tab({
     Name = "Main Features",
-    Icon = "rbxassetid://6034977833",
-    PremiumOnly = false
+    Icon = "rbxassetid://6034977833"
 })
 
 -- Auto Bubble Toggle
-MainTab:AddToggle({
+FeaturesTab:Button({
     Name = "🫧 Auto Bubble",
-    Default = false,
-    Callback = function(v)
-        getgenv().autoBubble = v
-        toggleLoop("autoBubble", 0.2, function()
-            Events.BlowBubble:FireServer()
-        end)
+    Callback = function()
+        getgenv().autoBubble = not getgenv().autoBubble
+        if getgenv().autoBubble then
+            spawn(autoBubbleFunction)
+        end
     end
 })
 
 -- Auto Sell Toggle
-MainTab:AddToggle({
+FeaturesTab:Button({
     Name = "💰 Auto Sell",
-    Default = false,
-    Callback = function(v)
-        getgenv().autoSell = v
-        toggleLoop("autoSell", 2, function()
-            Events.Sell:FireServer()
-        end)
+    Callback = function()
+        getgenv().autoSell = not getgenv().autoSell
+        if getgenv().autoSell then
+            spawn(autoSellFunction)
+        end
     end
 })
 
--- Auto Hatch Toggle
-MainTab:AddToggle({
-    Name = "🐣 Fast Auto Hatch (Skip Animation)",
-    Default = false,
-    Callback = function(v)
-        getgenv().autoHatch = v
-        toggleLoop("autoHatch", 0.1, function()
-            Events.HatchEgg:FireServer()
-        end)
+-- Fast Hatch Toggle
+FeaturesTab:Button({
+    Name = "🐣 Fast Hatch",
+    Callback = function()
+        getgenv().autoHatch = not getgenv().autoHatch
+        if getgenv().autoHatch then
+            spawn(fastHatchFunction)
+        end
     end
 })
 
--- Auto Enchant Toggle
-MainTab:AddToggle({
-    Name = "✨ Auto Enchant",
-    Default = false,
-    Callback = function(v)
-        getgenv().autoEnchant = v
-        toggleLoop("autoEnchant", 2, function()
-            Events.EnchantPet:FireServer()
-        end)
-    end
-})
-
--- FPS Boost Toggle
-MainTab:AddToggle({
-    Name = "🚀 FPS Boost",
-    Default = false,
-    Callback = function(value)
-        getgenv().fpsBoost = value
-        enableFPSBoost(value)
-    end
-})
-
--- Launch UI
-OrionLib:Init()
+-- Initialize the VapeLib GUI
+VapeLib:Init()
