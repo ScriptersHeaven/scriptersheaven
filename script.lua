@@ -1,7 +1,12 @@
--- Check if OrionLib is loaded, if not, load it
-local OrionLib
-if not pcall(function() OrionLib = require(game:GetService("ReplicatedStorage"):WaitForChild("Orion")) end) then
+-- Attempt to load OrionLib from a safe URL or fallback method
+local OrionLib = nil
+local success, err = pcall(function()
     OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+end)
+
+if not success then
+    print("Error loading OrionLib: " .. err)
+    return -- Stop execution if OrionLib fails to load
 end
 
 -- Main Window
@@ -23,13 +28,16 @@ getgenv().fpsBoost = false
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Events = ReplicatedStorage:WaitForChild("Events")
 
--- Generic loop handler
+-- Generic loop handler with safe exit
 local function toggleLoop(flag, delay, action)
-    task.spawn(function()
-        while getgenv()[flag] do
-            pcall(action)
-            task.wait(delay)
+    local connection
+    connection = game:GetService("RunService").Heartbeat:Connect(function()
+        if not getgenv()[flag] then
+            connection:Disconnect()  -- Disconnect the loop when turned off
+            return
         end
+        pcall(action)
+        wait(delay)
     end)
 end
 
@@ -113,33 +121,4 @@ MainTab:AddToggle({
     Default = false,
     Callback = function(v)
         getgenv().autoHatch = v
-        if v then toggleLoop("autoHatch", 0.1, function()
-            Events.HatchEgg:FireServer()
-        end) end
-    end
-})
-
--- Auto Enchant Toggle
-MainTab:AddToggle({
-    Name = "✨ Auto Enchant",
-    Default = false,
-    Callback = function(v)
-        getgenv().autoEnchant = v
-        if v then toggleLoop("autoEnchant", 2, function()
-            Events.EnchantPet:FireServer()
-        end) end
-    end
-})
-
--- FPS Boost Toggle
-MainTab:AddToggle({
-    Name = "🚀 FPS Boost",
-    Default = false,
-    Callback = function(value)
-        getgenv().fpsBoost = value
-        enableFPSBoost(value)
-    end
-})
-
--- Launch UI
-OrionLib:Init()
+        if v then toggleLoop("autoH
