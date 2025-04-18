@@ -1,5 +1,8 @@
--- Load Orion UI Library
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+-- Check if OrionLib is loaded, if not, load it
+local OrionLib
+if not pcall(function() OrionLib = require(game:GetService("ReplicatedStorage"):WaitForChild("Orion")) end) then
+    OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+end
 
 -- Main Window
 local Window = OrionLib:MakeWindow({
