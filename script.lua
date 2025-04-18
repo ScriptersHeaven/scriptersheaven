@@ -1,11 +1,12 @@
--- Attempt to load OrionLib from a safe URL or fallback method
+-- Attempt to load OrionLib from a safe URL
 local OrionLib = nil
 local success, err = pcall(function()
     OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 end)
 
-if not success then
-    print("Error loading OrionLib: " .. err)
+if not success or OrionLib == nil then
+    -- If OrionLib fails to load, print the error and stop the script
+    print("Error loading OrionLib: " .. (err or "Unknown error"))
     return -- Stop execution if OrionLib fails to load
 end
 
@@ -28,12 +29,22 @@ getgenv().fpsBoost = false
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Events = ReplicatedStorage:WaitForChild("Events")
 
+-- Loop Connection Storage
+local loopConnections = {}
+
 -- Generic loop handler with safe exit
 local function toggleLoop(flag, delay, action)
-    local connection
-    connection = game:GetService("RunService").Heartbeat:Connect(function()
+    -- Disconnect previous loop if already exists
+    if loopConnections[flag] then
+        loopConnections[flag]:Disconnect()
+        loopConnections[flag] = nil
+    end
+
+    -- Create new loop
+    loopConnections[flag] = game:GetService("RunService").Heartbeat:Connect(function()
         if not getgenv()[flag] then
-            connection:Disconnect()  -- Disconnect the loop when turned off
+            loopConnections[flag]:Disconnect()  -- Disconnect the loop when turned off
+            loopConnections[flag] = nil
             return
         end
         pcall(action)
@@ -97,9 +108,9 @@ MainTab:AddToggle({
     Default = false,
     Callback = function(v)
         getgenv().autoBubble = v
-        if v then toggleLoop("autoBubble", 0.2, function()
+        toggleLoop("autoBubble", 0.2, function()
             Events.BlowBubble:FireServer()
-        end) end
+        end)
     end
 })
 
@@ -109,9 +120,9 @@ MainTab:AddToggle({
     Default = false,
     Callback = function(v)
         getgenv().autoSell = v
-        if v then toggleLoop("autoSell", 2, function()
+        toggleLoop("autoSell", 2, function()
             Events.Sell:FireServer()
-        end) end
+        end)
     end
 })
 
@@ -121,4 +132,33 @@ MainTab:AddToggle({
     Default = false,
     Callback = function(v)
         getgenv().autoHatch = v
-        if v then toggleLoop("autoH
+        toggleLoop("autoHatch", 0.1, function()
+            Events.HatchEgg:FireServer()
+        end)
+    end
+})
+
+-- Auto Enchant Toggle
+MainTab:AddToggle({
+    Name = "✨ Auto Enchant",
+    Default = false,
+    Callback = function(v)
+        getgenv().autoEnchant = v
+        toggleLoop("autoEnchant", 2, function()
+            Events.EnchantPet:FireServer()
+        end)
+    end
+})
+
+-- FPS Boost Toggle
+MainTab:AddToggle({
+    Name = "🚀 FPS Boost",
+    Default = false,
+    Callback = function(value)
+        getgenv().fpsBoost = value
+        enableFPSBoost(value)
+    end
+})
+
+-- Launch UI
+OrionLib:Init()
